@@ -1,0 +1,11 @@
+## Interface: 120005, 120001, 110207, 50503
+## Title: MiniAbsorbOverlay
+## Notes: 基于 MiniOvershields 修改，增加了 NDui 小队框架支持。
+## Author: Verz
+## Version: 2.1.0
+## IconTexture: Interface\AddOns\MiniAbsorbOverlay\Icon.blp
+
+MiniFramework.lua
+MiniAbsorbOverlay.lua
+Adapters\BlizzardUI.lua
+Adapters\NDui.lua

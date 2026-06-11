@@ -1,0 +1,74 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Package and release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Resolve and verify version
+        id: version
+        shell: bash
+        run: |
+          if [[ ! "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release tags must use the vMAJOR.MINOR.PATCH format"
+            exit 1
+          fi
+
+          version="${GITHUB_REF_NAME#v}"
+          toc_version="$(sed -n 's/^## Version: *//p' MiniAbsorbOverlay.toc | tr -d '\r')"
+          if [[ "$toc_version" != "$version" ]]; then
+            echo "::error::Tag version $version does not match TOC version $toc_version"
+            exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Validate Lua syntax
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes lua5.4
+          luac -p \
+            MiniFramework.lua \
+            MiniAbsorbOverlay.lua \
+            Adapters/BlizzardUI.lua \
+            Adapters/NDui.lua
+
+      - name: Build addon package
+        shell: bash
+        run: |
+          package_root="package/MiniAbsorbOverlay"
+          mkdir -p "$package_root/Adapters"
+
+          cp Icon.blp "$package_root/"
+          cp MiniFramework.lua "$package_root/"
+          cp MiniAbsorbOverlay.lua "$package_root/"
+          cp MiniAbsorbOverlay.toc "$package_root/"
+          cp Adapters/BlizzardUI.lua "$package_root/Adapters/"
+          cp Adapters/NDui.lua "$package_root/Adapters/"
+
+          (
+            cd package
+            zip -r "../${{ steps.version.outputs.version }}.zip" MiniAbsorbOverlay
+          )
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "${{ steps.version.outputs.version }}.zip" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            --verify-tag
