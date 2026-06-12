@@ -14,7 +14,7 @@ local function ReanchorOverAbsorbGlow(absorb, overAbsorbGlow)
 	overAbsorbGlow:ClearAllPoints()
 	overAbsorbGlow:SetPoint("TOP", texture, "TOP", 0, 0)
 	overAbsorbGlow:SetPoint("BOTTOM", texture, "BOTTOM", 0, 0)
-	overAbsorbGlow:SetPoint("LEFT", texture, "LEFT", -7, 0)
+	overAbsorbGlow:SetPoint("RIGHT", texture, "RIGHT", 7, 0)
 end
 
 ---@param unitFrame table
